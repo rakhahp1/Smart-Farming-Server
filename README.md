@@ -69,6 +69,35 @@ Menggunakan model YOLOv8 berbasis deep learning.
 - ESP32/ → kode perangkat IoT
 
 ---
+## 📁 Dataset & Model
+
+Dataset dan model YOLO tidak disertakan langsung dalam repository karena ukuran file yang besar.
+
+---
+
+### 📥 Download Dataset
+Silakan download dataset jika ingin melakukan training ulang melalui link berikut:
+https://your-dataset-link
+
+Setelah download, lakukan training untuk mendapatkan model yolo.pt
+
+---
+
+### 📊 Format Dataset
+
+Dataset menggunakan format YOLO, yang terdiri dari:
+- images/ → berisi citra tanaman selada
+- labels/ → berisi anotasi bounding box dalam format `.txt`
+
+Format label:
+class x_center y_center width height
+
+---
+
+### ⚠️ Catatan
+
+- File dataset tidak di-upload ke GitHub untuk menjaga ukuran repository tetap ringan
+- Pastikan path dataset dan model sesuai dengan konfigurasi pada kode
 
 ## ▶️ Cara Menjalankan
 
