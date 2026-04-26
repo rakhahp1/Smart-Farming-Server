@@ -1,0 +1,693 @@
+<!doctype html>
+<html lang="id">
+<head>
+<meta charset="utf-8">
+<title>🌱 Smart Farming AI Dashboard</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;600;800&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<style>
+*{box-sizing:border-box}
+body{margin:0;font-family:Inter;background:#f4f7fb;color:#111827}
+.header{background:linear-gradient(135deg,#22c55e,#16a34a);color:#fff;padding:28px 30px;border-radius:0 0 30px 30px}
+.header h1{margin:0;font-size:30px}
+.header p{margin:10px 0 0;opacity:.92}
+
+.container{padding:18px 20px 30px}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:18px}
+.grid2{display:grid;grid-template-columns:2fr 1fr;gap:18px;margin-top:18px}
+.grid3{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:18px;margin-top:18px}
+@media(max-width:980px){.grid2{grid-template-columns:1fr}}
+
+.card{background:#fff;border-radius:18px;padding:18px;box-shadow:0 10px 25px rgba(0,0,0,.06)}
+.card h3{margin:0 0 10px;font-size:15px;color:#374151}
+.metric{font-size:44px;font-weight:800;line-height:1}
+.small{font-size:12px;color:#6b7280;line-height:1.35}
+
+.badge{padding:7px 14px;border-radius:999px;font-weight:800;display:inline-block}
+.good{background:#dcfce7;color:#15803d}
+.bad{background:#fee2e2;color:#b91c1c}
+.unknown{background:#e5e7eb;color:#374151}
+
+/* ===== Buttons ===== */
+.btn{padding:10px 14px;border:none;border-radius:12px;font-weight:800;cursor:pointer}
+.green{background:#16a34a;color:#fff}
+.gray{background:#e5e7eb}
+.red{background:#ef4444;color:#fff}
+.blue{background:#2563eb;color:#fff}
+
+/* interaksi tombol (hover/pressed/focus) */
+.btn{
+  transition: transform .06s ease, filter .15s ease, box-shadow .15s ease, opacity .15s ease;
+  outline:none;
+  user-select:none;
+}
+.btn:hover{
+  filter: brightness(0.97);
+  box-shadow: 0 6px 14px rgba(0,0,0,.08);
+}
+.btn:active{
+  transform: translateY(1px) scale(0.98);
+  filter: brightness(0.93);
+  box-shadow: none;
+}
+.btn:focus-visible{
+  box-shadow: 0 0 0 4px rgba(37,99,235,.22);
+}
+.btn:disabled{
+  cursor:not-allowed;
+  opacity:.65;
+  box-shadow:none !important;
+  transform:none !important;
+}
+
+/* tombol yang sedang dipilih (selected state) */
+.btn.selected{
+  box-shadow: 0 0 0 4px rgba(34,197,94,.18);
+  filter: brightness(1.02);
+}
+.btn.selected-blue{ box-shadow: 0 0 0 4px rgba(37,99,235,.18); }
+.btn.selected-gray{ box-shadow: 0 0 0 4px rgba(107,114,128,.18); }
+
+.pill{display:inline-block;padding:6px 10px;border-radius:999px;background:#ecfdf5;color:#065f46;font-weight:800;font-size:12px}
+.pill2{display:inline-block;padding:6px 10px;border-radius:999px;background:#eff6ff;color:#1d4ed8;font-weight:800;font-size:12px}
+
+.kv{display:grid;grid-template-columns:1fr auto;gap:10px;margin-top:6px}
+.kv div{padding:10px 12px;border-radius:12px;background:#f9fafb}
+.kv b{font-size:13px}
+hr{border:none;border-top:1px solid #eef2f7;margin:14px 0}
+
+.rowbtn{display:flex;gap:10px;flex-wrap:wrap}
+pre{white-space:pre-wrap;background:#f9fafb;border-radius:14px;padding:14px;border:1px solid #eef2f7}
+
+/* ===== YOLO MODAL ===== */
+.modal-bg{
+  position:fixed; inset:0; background:rgba(17,24,39,.55);
+  display:none; align-items:center; justify-content:center;
+  padding:18px; z-index:9999;
+}
+.modal-box{
+  width:min(920px, 96vw); background:#fff; border-radius:18px;
+  box-shadow:0 18px 45px rgba(0,0,0,.25);
+  overflow:hidden;
+}
+.modal-head{
+  display:flex; align-items:center; justify-content:space-between;
+  padding:14px 16px; background:#f9fafb; border-bottom:1px solid #eef2f7;
+}
+.modal-head b{font-size:14px;color:#111827}
+.modal-body{padding:16px}
+.modal-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+@media(max-width:900px){.modal-grid{grid-template-columns:1fr}}
+.modal-body video,.modal-body img,.modal-body canvas{
+  width:100%; border-radius:14px; border:1px solid #eef2f7;
+}
+.modal-foot{
+  display:flex; gap:10px; flex-wrap:wrap;
+  padding:14px 16px; border-top:1px solid #eef2f7; background:#fff;
+}
+.note{font-size:12px;color:#6b7280}
+</style>
+</head>
+
+<body>
+<div class="header">
+  <h1>🌱 Smart Farming AI Dashboard</h1>
+  <p>ESP32 • MQTT • Decision Tree • Flask • Realtime Monitoring (Pot 1–3) + YOLO</p>
+</div>
+
+<div class="container">
+
+<div class="grid">
+  <div class="card">
+    <h3>Suhu (Global)</h3>
+    <div class="metric"><span id="suhu">-</span>°C</div>
+    <div class="small" id="suhu_ts">Update: -</div>
+  </div>
+
+  <div class="card">
+    <h3>Kelembaban Udara (Global)</h3>
+    <div class="metric"><span id="hum">-</span>%</div>
+    <div class="small" id="hum_ts">Update: -</div>
+  </div>
+
+  <div class="card">
+    <h3>Intensitas Cahaya (LDR)</h3>
+    <div class="metric"><span id="ldr">-</span>%</div>
+    <div class="small" id="ldr_ts">Update: -</div>
+  </div>
+
+  <div class="card">
+    <h3>Model</h3>
+    <div><span class="pill2">Decision Tree</span></div>
+    <div class="small" style="margin-top:10px">
+      Akurasi Test Dataset: <b id="model_acc">-</b><br>
+      Akurasi Realtime: <b id="acc">-</b> %<br>
+    </div>
+  </div>
+
+  <div class="card">
+    <h3>Kontrol Sistem</h3>
+    Mode: <b id="mode">-</b>
+    <div class="rowbtn" style="margin-top:10px">
+      <button id="btnAuto" class="btn green" onclick="setMode('auto')">AUTO</button>
+      <button id="btnManual" class="btn gray" onclick="setMode('manual')">MANUAL</button>
+    </div>
+    <div class="small" style="margin-top:10px">
+      Mode AUTO akan mengontrol relay berdasarkan prediksi model.
+    </div>
+    <hr>
+    <div class="small">Uptime: <b id="uptime">-</b></div>
+    <div class="small">Update dashboard: <b>1s</b></div>
+  </div>
+</div>
+
+<div class="grid2">
+  <div class="card">
+    <h3>Grafik Kelembaban Tanah + Aktual vs Prediksi (Label 0/1)</h3>
+    <canvas id="chart" height="120"></canvas>
+    <div class="small" style="margin-top:10px">
+      Garis soil: persen kelembaban tanah (rata-rata A & B).
+      Aktual/Pred: label 0 (tidak siram) / 1 (siram).
+    </div>
+  </div>
+
+  <div class="card">
+    <h3>Kontrol Relay Manual</h3>
+    <div class="small">Gunakan saat mode <b>MANUAL</b>.</div>
+    <hr>
+
+    <div class="kv">
+      <div><b>Relay Pot 1</b><div class="small" id="r1_ts">-</div></div>
+      <div style="text-align:right">
+        <b id="r1">-</b><br>
+        <button id="r1_on" class="btn blue" onclick="relay(1,'ON')">ON</button>
+        <button id="r1_off" class="btn gray" onclick="relay(1,'OFF')">OFF</button>
+      </div>
+
+      <div><b>Relay Pot 2</b><div class="small" id="r2_ts">-</div></div>
+      <div style="text-align:right">
+        <b id="r2">-</b><br>
+        <button id="r2_on" class="btn blue" onclick="relay(2,'ON')">ON</button>
+        <button id="r2_off" class="btn gray" onclick="relay(2,'OFF')">OFF</button>
+      </div>
+
+      <div><b>Relay Pot 3</b><div class="small" id="r3_ts">-</div></div>
+      <div style="text-align:right">
+        <b id="r3">-</b><br>
+        <button id="r3_on" class="btn blue" onclick="relay(3,'ON')">ON</button>
+        <button id="r3_off" class="btn gray" onclick="relay(3,'OFF')">OFF</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="grid3">
+  <div class="card">
+    <h3>🪴 Pot 1 - Keputusan</h3>
+    <div id="pot1_badge" class="badge unknown">-</div>
+    <div class="small" id="pot1_info" style="margin-top:10px">-</div>
+  </div>
+  <div class="card">
+    <h3>🪴 Pot 2 - Keputusan</h3>
+    <div id="pot2_badge" class="badge unknown">-</div>
+    <div class="small" id="pot2_info" style="margin-top:10px">-</div>
+  </div>
+  <div class="card">
+    <h3>🪴 Pot 3 - Keputusan</h3>
+    <div id="pot3_badge" class="badge unknown">-</div>
+    <div class="small" id="pot3_info" style="margin-top:10px">-</div>
+  </div>
+</div>
+
+<!-- ================= YOLO CARD (FINAL BARU) ================= -->
+<div class="grid2" style="margin-top:18px">
+
+  <!-- ===== LEFT CARD : GAMBAR YOLO ===== -->
+  <div class="card">
+    <h3>📷 YOLO - Kondisi Pertumbuhan Selada</h3>
+    <div class="small">
+      Update terakhir: <b id="yolo_ts">-</b>
+    </div>
+
+    <div style="margin-top:12px">
+      <img id="yolo_img"
+           src=""
+           style="width:100%;max-width:980px;border-radius:14px;border:1px solid #eef2f7;display:none">
+      <div class="small" id="yolo_empty" style="margin-top:10px">
+        Belum ada hasil YOLO. Klik <b>Capture YOLO</b>.
+      </div>
+    </div>
+
+    <div class="rowbtn" style="margin-top:14px">
+      <button class="btn blue" onclick="openYoloModal()">Capture YOLO</button>
+    </div>
+  </div>
+
+  <!-- ===== RIGHT CARD : INSIGHT YOLO ===== -->
+  <div class="card">
+    <h3>🧠 Analisis YOLO</h3>
+
+    <!-- KELAS DOMINAN -->
+    <div style="margin-top:10px">
+      <div style="font-size:13px;color:#64748b">Kelas Dominan</div>
+      <div class="metric" style="font-size:40px;margin-top:4px">
+        <span id="yolo_top">-</span>
+      </div>
+      <div class="small">
+        Dihitung dari jumlah bounding box terbanyak pada hasil deteksi.
+      </div>
+    </div>
+
+    <hr>
+
+    <!-- RINGKASAN DETEKSI -->
+    <div style="margin-top:6px">
+      <div style="font-size:14px;font-weight:600;margin-bottom:6px">
+        📊 Ringkasan Deteksi
+      </div>
+      <pre id="yolo_summary"
+           style="font-size:15px;
+                  background:#f8fafc;
+                  border-radius:10px;
+                  padding:10px;
+                  border:1px solid #e5e7eb">-</pre>
+    </div>
+
+    <hr>
+
+    <!-- DESKRIPSI KELAS -->
+    <div style="font-size:15px;line-height:1.6">
+
+      <div style="margin-bottom:12px">
+        <b style="color:#15803d;font-size:16px">🌱 Siap Panen</b><br>
+        Tanaman selada telah mencapai tingkat kematangan optimal dan siap untuk dipanen.
+      </div>
+
+      <div style="margin-bottom:12px">
+        <b style="color:#22c55e;font-size:16px">🌿 Masa Pertumbuhan</b><br>
+        Tanaman masih dalam fase pertumbuhan dan membutuhkan waktu tambahan sebelum panen.
+      </div>
+
+      <div>
+        <b style="color:#f97316;font-size:16px">⚠️ Rusak</b><br>
+        Tanaman terdeteksi mengalami kerusakan atau anomali visual yang menurunkan kualitas.
+      </div>
+
+    </div>
+  </div>
+
+</div>
+
+<div class="grid2" style="margin-top:18px">
+  <div class="card">
+    <h3>🌳 Decision Tree</h3>
+    <img id="tree" src="/static/tree.png" style="width:100%;max-width:980px;border-radius:14px;border:1px solid #eef2f7">
+  </div>
+  <div class="card">
+    <h3>🧩 Aturan Pohon (Ringkas)</h3>
+    <pre id="rules" style="max-height:420px;overflow:auto"></pre>
+    <div class="small" style="margin-top:10px">
+      Update terakhir keputusan: <b id="dec_ts">-</b>
+    </div>
+  </div>
+</div>
+
+</div>
+
+<!-- ===== YOLO MODAL ===== -->
+<div id="yoloModal" class="modal-bg">
+  <div class="modal-box">
+    <div class="modal-head">
+      <b>📷 Capture YOLO (Selada)</b>
+      <button class="btn gray" onclick="closeYoloModal()">Tutup</button>
+    </div>
+
+    <div class="modal-body">
+      <div class="note" style="margin-bottom:10px">
+        Jika webcam tidak bisa dibuka: pastikan akses dari <b>http://localhost:5000</b> (bukan IP), dan izinkan permission kamera.
+      </div>
+
+      <!-- ===== UPLOAD GAMBAR ===== -->
+      <div style="margin-bottom:12px">
+       <div class="small" style="margin-bottom:6px"><b>Upload Gambar dari Device</b></div>
+       <input type="file" id="yoloUpload" accept="image/*">
+       <button class="btn green" onclick="yoloUploadSubmit()">Upload & Detect</button>
+      </div>
+
+      <div class="modal-grid">
+        <div>
+          <div class="small" style="margin-bottom:8px"><b>Live Webcam</b></div>
+          <video id="yoloVideo" autoplay playsinline></video>
+        </div>
+
+        <div>
+          <div class="small" style="margin-bottom:8px"><b>Preview Capture</b></div>
+          <img id="yoloPreview" style="display:none" alt="preview">
+          <canvas id="yoloCanvas" style="display:none"></canvas>
+          <div id="yoloPreviewEmpty" class="small">Belum ada gambar. Klik Capture.</div>
+        </div>
+      </div>
+
+      <div class="note" id="yoloModalMsg" style="margin-top:10px"></div>
+    </div>
+
+    <div class="modal-foot">
+      <button class="btn blue" onclick="yoloStartCamera()">Start Camera</button>
+      <button class="btn green" onclick="yoloCapture()">Capture</button>
+      <button id="btnYoloSubmit" class="btn green" onclick="yoloSubmit()">Submit YOLO</button>
+      <button class="btn gray" onclick="yoloStopCamera()">Stop Camera</button>
+    </div>
+  </div>
+</div>
+
+<script>
+const ctx = document.getElementById('chart');
+const chart = new Chart(ctx,{
+  type:'line',
+  data:{
+    labels:[],
+    datasets:[
+      // ===== SOIL (%), sumbu kiri =====
+      {label:'Soil Pot 1 (%)', data:[], borderWidth:2, tension:.25},
+      {label:'Soil Pot 2 (%)', data:[], borderWidth:2, tension:.25},
+      {label:'Soil Pot 3 (%)', data:[], borderWidth:2, tension:.25},
+
+      // ===== AKTUAL/PRED (0/1), sumbu kanan =====
+      {label:'Aktual Pot 1 (0/1)', data:[], borderDash:[6,6], borderWidth:2, tension:.15, yAxisID:'y2'},
+      {label:'Pred Pot 1 (0/1)',   data:[], borderDash:[2,2], borderWidth:2, tension:.15, yAxisID:'y2'},
+
+      {label:'Aktual Pot 2 (0/1)', data:[], borderDash:[6,6], borderWidth:2, tension:.15, yAxisID:'y2'},
+      {label:'Pred Pot 2 (0/1)',   data:[], borderDash:[2,2], borderWidth:2, tension:.15, yAxisID:'y2'},
+
+      {label:'Aktual Pot 3 (0/1)', data:[], borderDash:[6,6], borderWidth:2, tension:.15, yAxisID:'y2'},
+      {label:'Pred Pot 3 (0/1)',   data:[], borderDash:[2,2], borderWidth:2, tension:.15, yAxisID:'y2'},
+    ]
+  },
+  options:{
+    responsive:true,
+    scales:{
+      y:{title:{display:true,text:'% soil'}, suggestedMin:0, suggestedMax:100},
+      y2:{type:'linear', position:'right', min:0, max:1, ticks:{stepSize:1}, title:{display:true,text:'label 0/1'}},
+    }
+  }
+});
+
+function badgeClass(status){
+  if(status==='SIRAM') return 'good';
+  if(status==='TIDAK SIRAM') return 'bad';
+  return 'unknown';
+}
+
+async function setMode(m){ await fetch('/mode/'+m,{method:'POST'}); }
+async function relay(id,state){ await fetch(`/relay/${id}/${state}`,{method:'POST'}); }
+
+function setRelaySelected(i, state){
+  const onBtn  = document.getElementById(`r${i}_on`);
+  const offBtn = document.getElementById(`r${i}_off`);
+  if(!onBtn || !offBtn) return;
+
+  const isOn = (state || '').toUpperCase() === 'ON';
+
+  onBtn.classList.remove('selected','selected-blue');
+  offBtn.classList.remove('selected','selected-gray');
+
+  if(isOn){
+    onBtn.classList.add('selected','selected-blue');
+  }else{
+    offBtn.classList.add('selected','selected-gray');
+  }
+}
+
+function arrOrEmpty(v){ return Array.isArray(v) ? v : []; }
+
+async function refresh(){
+  const s = await fetch('/sensors').then(r=>r.json());
+  const d = await fetch('/decision').then(r=>r.json());
+  const h = await fetch('/history').then(r=>r.json());
+  const a = await fetch('/accuracy').then(r=>r.json());
+  const meta = await fetch('/meta').then(r=>r.json());
+  const rules = await fetch('/rules').then(r=>r.text());
+  const y = await fetch('/yolo_latest').then(r=>r.json());
+
+  document.getElementById('mode').innerText = (s.mode || '-').toUpperCase();
+
+  const isAuto = (s.mode || '').toLowerCase() === 'auto';
+  document.getElementById('btnAuto').classList.toggle('selected', isAuto);
+  document.getElementById('btnManual').classList.toggle('selected', !isAuto);
+
+  document.getElementById('suhu').innerText = (s.values.suhu ?? '-');
+  document.getElementById('hum').innerText  = (s.values.kelembaban ?? '-');
+  document.getElementById('ldr').innerText  = (s.values.ldr ?? '-');
+
+  document.getElementById('suhu_ts').innerText = 'Update: ' + (s.timestamps.suhu ?? '-');
+  document.getElementById('hum_ts').innerText  = 'Update: ' + (s.timestamps.kelembaban ?? '-');
+  document.getElementById('ldr_ts').innerText  = 'Update: ' + (s.timestamps.ldr ?? '-');
+
+  document.getElementById('r1').innerText = (s.relay["1"] ?? '-');
+  document.getElementById('r2').innerText = (s.relay["2"] ?? '-');
+  document.getElementById('r3').innerText = (s.relay["3"] ?? '-');
+
+  setRelaySelected(1, s.relay["1"]);
+  setRelaySelected(2, s.relay["2"]);
+  setRelaySelected(3, s.relay["3"]);
+
+  document.getElementById('model_acc').innerText = meta.model_acc + ' (Rasio Test)';
+  document.getElementById('uptime').innerText = meta.uptime;
+
+  document.getElementById('acc').innerText = (a.accuracy ?? 0);
+
+  function fillPot(i){
+    const p = d.pots['pot_'+i];
+    const badge = document.getElementById('pot'+i+'_badge');
+    const info  = document.getElementById('pot'+i+'_info');
+
+    if(!p || p.features==null){
+      badge.className = 'badge unknown';
+      badge.innerText = '-';
+      info.innerHTML = 'Menunggu data sensor lengkap...';
+      return;
+    }
+
+    badge.className = 'badge ' + badgeClass(p.status);
+    badge.innerText = p.status;
+
+    const f = p.features;
+    const proba = (p.proba) ? `P(Tidak)=${Number(p.proba[0]).toFixed(2)} • P(Siram)=${Number(p.proba[1]).toFixed(2)}` : '-';
+    info.innerHTML = `
+      <b>Soil(avg):</b> ${Number(f.kelembaban_tanah).toFixed(1)}%<br>
+      <b>Suhu:</b> ${Number(f.suhu).toFixed(1)}°C • <b>Hum:</b> ${Number(f.kelembaban).toFixed(1)}% • <b>LDR:</b> ${Number(f.intensitas_cahaya).toFixed(1)}%<br>
+      <b>Aktual:</b> ${p.actual} • <b>Prediksi:</b> ${p.prediction}<br>
+      <b>Prob:</b> ${proba}
+    `;
+  }
+  fillPot(1); fillPot(2); fillPot(3);
+
+  document.getElementById('dec_ts').innerText = d.updated_at ?? '-';
+
+  document.getElementById('rules').innerText = rules;
+  document.getElementById('tree').src = '/static/tree.png?ts=' + Date.now();
+
+  // ===== CHART UPDATE (Pot 1-3 lengkap) =====
+  chart.data.labels = arrOrEmpty(h.time);
+
+  chart.data.datasets[0].data = arrOrEmpty(h.soil_1);
+  chart.data.datasets[1].data = arrOrEmpty(h.soil_2);
+  chart.data.datasets[2].data = arrOrEmpty(h.soil_3);
+
+  chart.data.datasets[3].data = arrOrEmpty(h.actual_1);
+  chart.data.datasets[4].data = arrOrEmpty(h.pred_1);
+
+  chart.data.datasets[5].data = arrOrEmpty(h.actual_2);
+  chart.data.datasets[6].data = arrOrEmpty(h.pred_2);
+
+  chart.data.datasets[7].data = arrOrEmpty(h.actual_3);
+  chart.data.datasets[8].data = arrOrEmpty(h.pred_3);
+
+  chart.update();
+
+  // ===== YOLO UI =====
+  document.getElementById('yolo_ts').innerText = y.updated_at ?? '-';
+  document.getElementById('yolo_top').innerText = y.top ?? '-';
+
+  const imgEl = document.getElementById('yolo_img');
+  const emptyEl = document.getElementById('yolo_empty');
+  if (y.image_url) {
+    imgEl.src = y.image_url + '?ts=' + Date.now();
+    imgEl.style.display = 'block';
+    emptyEl.style.display = 'none';
+  } else {
+    imgEl.style.display = 'none';
+    emptyEl.style.display = 'block';
+  }
+
+  document.getElementById('yolo_summary').innerText =
+    (y.summary && Object.keys(y.summary).length)
+    ? JSON.stringify(y.summary, null, 2)
+    : '-';
+}
+
+setInterval(refresh, 1000);
+refresh();
+
+// ===== YOLO MODAL CONTROLS =====
+let yoloStream = null;
+
+function openYoloModal(){
+  document.getElementById('yoloModal').style.display = 'flex';
+  document.getElementById('yoloModalMsg').innerText = '';
+  yoloStartCamera();
+}
+
+function closeYoloModal(){
+  yoloStopCamera();
+  document.getElementById('yoloModal').style.display = 'none';
+}
+
+async function yoloStartCamera(){
+  const msg = document.getElementById('yoloModalMsg');
+  msg.innerText = '';
+
+  try{
+    yoloStopCamera();
+
+    const stream = await navigator.mediaDevices.getUserMedia({
+      video: { facingMode: "environment" }, audio: false
+    });
+
+    yoloStream = stream;
+    const video = document.getElementById('yoloVideo');
+    video.srcObject = stream;
+    await video.play();
+    msg.innerText = 'Kamera aktif. Klik Capture untuk ambil gambar.';
+  } catch(e){
+    msg.innerText =
+      'Gagal membuka kamera: ' + e +
+      '\n\nPenyebab umum:\n- Buka dari http://IP:5000 (tidak secure). Pakai http://localhost:5000\n- Permission kamera ditolak\n- Kamera sedang dipakai aplikasi lain';
+  }
+}
+
+function yoloStopCamera(){
+  const video = document.getElementById('yoloVideo');
+  if(video) video.srcObject = null;
+
+  if(yoloStream){
+    yoloStream.getTracks().forEach(t => t.stop());
+    yoloStream = null;
+  }
+}
+
+function yoloCapture(){
+  const video = document.getElementById('yoloVideo');
+  const canvas = document.getElementById('yoloCanvas');
+  const preview = document.getElementById('yoloPreview');
+  const empty = document.getElementById('yoloPreviewEmpty');
+  const msg = document.getElementById('yoloModalMsg');
+
+  if(!video || video.videoWidth === 0){
+    msg.innerText = 'Kamera belum aktif. Klik Start Camera.';
+    return;
+  }
+
+  canvas.width = video.videoWidth;
+  canvas.height = video.videoHeight;
+
+  const ctx = canvas.getContext('2d');
+  ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+
+  const dataURL = canvas.toDataURL('image/jpeg', 0.9);
+
+  preview.src = dataURL;
+  preview.style.display = 'block';
+  empty.style.display = 'none';
+  msg.innerText = 'Gambar berhasil di-capture. Klik Submit YOLO.';
+}
+
+async function yoloSubmit(){
+  const preview = document.getElementById('yoloPreview');
+  const msg = document.getElementById('yoloModalMsg');
+  const btn = document.getElementById('btnYoloSubmit');
+
+  if(!preview.src){
+    msg.innerText = 'Belum ada gambar. Klik Capture dulu.';
+    return;
+  }
+
+  btn.disabled = true;
+  const oldText = btn.innerText;
+  btn.innerText = 'Processing...';
+  msg.innerText = 'Mengirim gambar ke server YOLO...';
+
+  try{
+    const res = await fetch('/yolo_submit', {
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({ image: preview.src })
+    });
+
+    const data = await res.json();
+    if(data.status === 'success'){
+      msg.innerText = 'Sukses! Dashboard akan update otomatis.';
+    } else {
+      msg.innerText = 'Gagal: ' + (data.message || 'unknown error');
+    }
+  } catch(e){
+    msg.innerText = 'Error submit: ' + e;
+  } finally {
+    btn.disabled = false;
+    btn.innerText = oldText;
+  }
+}
+
+// ===============================
+// 🔥 TAMBAHKAN DI SINI
+// ===============================
+async function yoloUploadSubmit(){
+  const input = document.getElementById('yoloUpload');
+  const msg = document.getElementById('yoloModalMsg');
+
+  if(!input.files.length){
+    msg.innerText = 'Pilih gambar terlebih dahulu!';
+    return;
+  }
+
+  const formData = new FormData();
+  formData.append("image", input.files[0]);
+
+  msg.innerText = 'Mengupload & memproses gambar...';
+
+  try{
+    const res = await fetch('/yolo_upload', {
+      method: 'POST',
+      body: formData
+    });
+
+    const data = await res.json();
+
+    if(data.status === 'success'){
+      msg.innerText = 'Sukses! Dashboard akan update otomatis.';
+    } else {
+      msg.innerText = 'Gagal: ' + data.message;
+    }
+  }catch(e){
+    msg.innerText = 'Error: ' + e;
+  }
+}
+
+// (opsional preview)
+document.getElementById('yoloUpload').addEventListener('change', function(e){
+  const file = e.target.files[0];
+  if(!file) return;
+
+  const preview = document.getElementById('yoloPreview');
+  const empty = document.getElementById('yoloPreviewEmpty');
+
+  const url = URL.createObjectURL(file);
+  preview.src = url;
+  preview.style.display = 'block';
+  empty.style.display = 'none';
+});
+
+</script>
+</body>
+</html>

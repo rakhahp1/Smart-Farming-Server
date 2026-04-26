@@ -24,11 +24,17 @@ Menggunakan model YOLOv8 berbasis deep learning.
 - Monitoring kondisi tanaman
 - Integrasi dengan backend Flask
 
+### 4. Sistem Otomatisasi
+- Prediksi penyiraman menggunakan Decision Tree
+- Kontrol relay berbasis hasil prediksi
+- Integrasi MQTT dengan ESP32
+
 ---
 
 ## 🏗️ Arsitektur Sistem
 
-Kamera / Sensor → ESP32 → Backend (Flask) → YOLOv8 → Dashboard Web
+Kamera & Sensor → ESP32 → MQTT → Backend (Flask) →  
+Decision Tree & YOLOv8 → Dashboard Web
 
 ---
 
@@ -37,15 +43,10 @@ Kamera / Sensor → ESP32 → Backend (Flask) → YOLOv8 → Dashboard Web
 - Python (Flask)
 - YOLOv8 (Ultralytics)
 - ESP32 (IoT)
+- MQTT Protocol
+- Decision Tree (Machine Learning)
 - HTML, CSS, JavaScript
-- MQTT / HTTP Communication
 
 ---
 
 ## 📂 Struktur Folder
-
-services/ → Logic backend (YOLO, MQTT, scheduler)
-web/ → Routing & web interface
-static/ → Asset frontend
-logs/ → Data logging sensor
-ESP32/ → Code perangkat IoT

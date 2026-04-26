@@ -1,0 +1,15 @@
+__pycache__/
+*.pyc
+
+# model YOLO
+*.pt
+
+# hasil deteksi (gambar)
+static/yolo/
+*.jpg
+
+# log
+logs/
+
+# env
+.env
