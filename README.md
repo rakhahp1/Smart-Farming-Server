@@ -17,6 +17,9 @@ Decision Tree & YOLOv8 → Dashboard Web
   <img src="static/dashboard.jpeg" width="700"/>
 </p>
 
+<p align="center">
+  <img src="static/dashboard_yolo.jpeg" width="700"/>
+</p>
 ---
 
 ## 🚀 Fitur Utama
