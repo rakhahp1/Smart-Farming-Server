@@ -3,6 +3,14 @@
 Sistem Smart Farming berbasis Computer Vision dan IoT untuk mendeteksi kondisi tanaman selada secara real-time menggunakan model YOLOv8 serta monitoring sensor melalui dashboard web.
 
 ---
+## 👨‍💻 Authors
+
+This system was developed collaboratively with the following roles:
+
+- **Rakha Hafizh Pramana** — Computer Vision (YOLOv8-based detection)
+- **Nurul Aziz Eka Putra** — Decision Tree-based irrigation control
+- **Muhammad Abdul Rochim At Tamimi** — IoT and sensor monitoring system
+---
 
 ## 🏗️ Arsitektur Sistem
 
@@ -77,7 +85,7 @@ Dataset dan model YOLO tidak disertakan langsung dalam repository karena ukuran 
 
 ### 📥 Download Dataset
 Silakan download dataset jika ingin melakukan training ulang melalui link berikut:
-https://your-dataset-link
+https://drive.google.com/drive/folders/17hC49bfWMCtQBjQuLxqStSbGiQ5xf8aI?usp=drive_link
 
 Setelah download, lakukan training untuk mendapatkan model yolo.pt
 
