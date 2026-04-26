@@ -4,7 +4,7 @@ __pycache__/
 # model YOLO
 *.pt
 
-# hasil deteksi (gambar)
+# hasil deteksi gambar
 static/yolo/
 *.jpg
 
