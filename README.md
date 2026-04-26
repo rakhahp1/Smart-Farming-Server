@@ -4,6 +4,21 @@ Sistem Smart Farming berbasis Computer Vision dan IoT untuk mendeteksi kondisi t
 
 ---
 
+## 🏗️ Arsitektur Sistem
+
+Kamera & Sensor → ESP32 → MQTT → Backend (Flask) →  
+Decision Tree & YOLOv8 → Dashboard Web
+
+---
+
+## 📸 Tampilan Sistem
+
+<p align="center">
+  <img src="static/dashboard.jpeg" width="700"/>
+</p>
+
+---
+
 ## 🚀 Fitur Utama
 
 ### 1. Monitoring Sensor (IoT)
@@ -31,13 +46,6 @@ Menggunakan model YOLOv8 berbasis deep learning.
 
 ---
 
-## 🏗️ Arsitektur Sistem
-
-Kamera & Sensor → ESP32 → MQTT → Backend (Flask) →  
-Decision Tree & YOLOv8 → Dashboard Web
-
----
-
 ## ⚙️ Teknologi yang Digunakan
 
 - Python (Flask)
@@ -50,3 +58,17 @@ Decision Tree & YOLOv8 → Dashboard Web
 ---
 
 ## 📂 Struktur Folder
+
+- services/ → logic backend (YOLO, MQTT, scheduler)
+- web/ → routing & dashboard
+- static/ → asset frontend (termasuk gambar dashboard)
+- logs/ → data sensor
+- ESP32/ → kode perangkat IoT
+
+---
+
+## ▶️ Cara Menjalankan
+
+Install dependency:
+```bash
+pip install -r requirements.txt
