@@ -43,3 +43,9 @@ Kamera / Sensor → ESP32 → Backend (Flask) → YOLOv8 → Dashboard Web
 ---
 
 ## 📂 Struktur Folder
+
+services/ → Logic backend (YOLO, MQTT, scheduler)
+web/ → Routing & web interface
+static/ → Asset frontend
+logs/ → Data logging sensor
+ESP32/ → Code perangkat IoT
